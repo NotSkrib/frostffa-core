@@ -1,0 +1,618 @@
+# ════════════════════════════════════════════════════════════════
+#   F R O S T   F F A   —   C O R E
+#   Flat colour, no gradients, small caps throughout.
+#   Palette: brand   #4FC3F7 · glacier #B3E5FC · snow #EAF6FF
+#            coin    #7FE9FF · ink     #9FB3C0 · dim  #5A6B78
+#            warn    #FFD166 · bad     #FF6B7A · deep #2E6E8E
+#   Currency: physical Nether Star kill tokens. Amounts below are whole token counts.
+# ════════════════════════════════════════════════════════════════
+
+# Turn any of these off to fully disable that feature's commands and player-facing events
+# (the underlying manager still loads internally, so other features that read its data stay
+# safe — only its own commands/listeners stop). Not every manager is listed: a few
+# (economy, kills, rank, combat, afk, kits, settings, shop) are load-bearing — other
+# features depend on them directly, so they aren't offered as a toggle here.
+modules:
+  kit: { enabled: false }
+  rules: { enabled: true }
+  trash: { enabled: true }
+  leaderboard: { enabled: true }
+  daily: { enabled: true }
+  bounty: { enabled: true }
+  maintenance: { enabled: true }
+  juggernaut: { enabled: true }
+  chatfilter: { enabled: true }
+  vanish: { enabled: true }
+  spectate: { enabled: true }
+  welcome: { enabled: true }
+
+economy:
+  kill-reward: "1"                  # 1 physical kill token per clean kill
+  repeat-kill-reward: "1"           # killing the same person again inside the window
+  repeat-cooldown-minutes: 10
+  actionbar: false
+  actionbar-update-ticks: 10
+  actionbar-yield-millis: 1800      # how long an ability message holds the bar
+  audit-log: true                   # every FrostFFACore-originated payout -> transactions.log
+  kill-token-name: "&e&lᴋɪʟʟᴛᴏᴋᴇɴ"
+
+announcements:
+  command:
+    title: "<blue><bold>❄ FROST FFA ❄</bold></blue>"
+    subtitle: "<aqua>❄ <white><message></white> ❄</aqua>"
+  kill-milestones:
+    enabled: true
+    interval: 5
+    message: "<color:#4FC3F7><bold>ᴋɪʟʟ ᴍɪʟᴇꜱᴛᴏɴᴇ</bold></color> <dark_gray>›</dark_gray> <color:#B3E5FC><player></color> <color:#9FB3C0>ʜᴀꜱ ʀᴇᴀᴄʜᴇᴅ</color> <color:#7FE9FF><kills></color> <color:#9FB3C0>ᴋɪʟʟꜱ.</color>"
+
+juggernaut:
+  name-roll:
+    # A slot-machine-style title reveal on /juggernaut start — flashes random eligible
+    # names, decelerating, before landing on the actual Juggernaut. Set false to skip
+    # straight to the "chosen" message like before.
+    enabled: true
+  messages:
+    started: "<color:#4FC3F7><bold>JUGGERNAUT</bold></color> <dark_gray>›</dark_gray> <color:#9FB3C0>event started!</color>"
+    juggernaut: "<color:#FFD166><bold>JUGGERNAUT</bold></color> <dark_gray>›</dark_gray> <color:#B3E5FC><player></color> <color:#9FB3C0>has been chosen.</color>"
+    eliminated: "<color:#FF6B7A><bold>ELIMINATED</bold></color> <dark_gray>›</dark_gray> <color:#B3E5FC><player></color>"
+    winner: "<color:#7FE9FF><bold>WINNER</bold></color> <dark_gray>›</dark_gray> <color:#B3E5FC><player></color> <color:#9FB3C0>is the last survivor!</color>"
+    stopped: "<color:#9FB3C0>Juggernaut event stopped.</color>"
+  kit:
+    items:
+      - material: DIAMOND_SWORD
+        amount: 1
+        slot: 0
+      - material: SHIELD
+        amount: 1
+        slot: 1
+      - material: DIAMOND_HELMET
+        amount: 1
+        slot: 39
+      - material: DIAMOND_CHESTPLATE
+        amount: 1
+        slot: 38
+      - material: DIAMOND_LEGGINGS
+        amount: 1
+        slot: 37
+      - material: DIAMOND_BOOTS
+        amount: 1
+        slot: 36
+    effects:
+      - type: RESISTANCE
+        duration-seconds: 3600
+        amplifier: 1
+      - type: STRENGTH
+        duration-seconds: 3600
+        amplifier: 1
+
+kit-layout:
+  enabled: true
+  default-kit: "default"
+  disallowed-materials: [NETHERITE_SWORD, MACE, NETHERITE_AXE, BOW, WIND_CHARGE, HEAVY_CORE, TRIAL_KEY, OMINOUS_TRIAL_KEY, ENCHANTED_GOLDEN_APPLE, NETHERITE_INGOT]
+  disallowed-names: [trim, ingot, nugget, ore, token]
+
+discord:
+  # Never commit a real bot token here — set it on the live server's copy only.
+  enabled: false
+  token: "PUT_DISCORD_BOT_TOKEN_HERE"
+  guild-id: ""
+  channel-id: ""
+  verified-role-id: ""
+  staff-role-id: ""
+  code-expiry-seconds: 600
+  bot-command-prefix: "!"
+  verified-display-prefix: "✓ "
+
+# FancyNpcs integration uses Bukkit's PlayerInteractEntityEvent fallback. FancyNpcs is not
+# a compile-time dependency because its API jar is not present locally; match the NPC id
+# through its custom name, scoreboard tag, or string persistent-data value.
+# Kits are ordered lowest rank to highest rank: the highest permission the player has is dispatched.
+# Sound played to a player when they right-click a recognized NPC. Keys must match the NPC's
+# custom name, scoreboard tag, or a string PDC value — the same lookup kit-npc.id already
+# uses. Add one entry per NPC (rename the keys to match your actual shop/discord NPCs);
+# this only plays a sound, it never touches whatever command the NPC itself runs.
+npc-sounds:
+  kit-npc: "block.note_block.chime"       # bright chime — fits opening a kit/gear menu
+  shop-npc: "block.amethyst_block.chime"  # twinkly, reads as a "purchase" cue
+  discord-npc: "block.note_block.pling"   # crisp bell — reads like a notification ping
+  # Matches by entity type too, not just name/tag — this fires for ANY villager right-click,
+  # which covers Shopkeepers' default villager-model shops without needing their exact name.
+  villager: "entity.villager.trade"       # the familiar "haggle" grunt — instantly reads as a shop
+
+kit-npc:
+  enabled: true
+  id: "kit-npc"
+  permission-prefix: "frostffa.kit."
+  kits: [default, flurry, frostbite, hail, blizzard, glacier, permafrost, avalanche, absolutezero, vip, media, vipplus, mvp, mvpplus, frost]
+  no-kit-message: "&bYou do not own a kit yet."
+  cooldown-seconds: 300 # per-kit cooldown for the /kit selection GUI
+
+combat:
+  duration: 30
+  bossbar: false
+  untag-on-kill: true
+  punish-on-kick: false
+  blacklisted-commands: [spawn, tp, teleport, home, warp, hub, lobby]
+  anti-health-indicator:
+    # Requires the PacketEvents plugin (softdepend) — silently disabled if it's missing.
+    # Rewrites the "Health" entity-metadata field broadcast about every player to
+    # everyone else, so resource packs / client mods that render an opponent's exact HP
+    # via a colored nametag can't read real values off the wire. Each player's own
+    # client is untouched.
+    enabled: true
+    fake-health: 20.0
+maintenance:
+  enabled: false
+  join-denied-message: "<red><bold>Server is in maintenance.</bold></red>\n<gray>Check back soon.</gray>"
+
+clearlag:
+  enabled: true
+  interval-seconds: 300
+  warning-seconds: 10
+  entities: [DROPPED_ITEM, ARROW, EXPERIENCE_ORB]
+  warning-message: "<color:#FFD166>Clearing dropped items in <seconds>s.</color>"
+  cleared-message: "<color:#9FB3C0>Cleared <count> item(s) from the ground.</color>"
+
+spawn:
+  teleport-on-join: true
+  location: ""
+  region: "spawn"
+  disable-collision: true
+  block-drops: true
+  drop-message: "<color:#9FB3C0>ɴᴏ ᴅʀᴏᴘᴘɪɴɢ ɪᴛᴇᴍꜱ ɪɴ ꜱᴘᴀᴡɴ — ᴜꜱᴇ <click:run_command:'/trash'><color:#7FE9FF>/trash</color></click> <color:#9FB3C0>ᴛᴏ ɢᴇᴛ ʀɪᴅ ᴏꜰ ɪᴛ.</color>"
+
+spawn-region: "spawn"
+worldguard-enabled: true
+
+building:
+  player-placed-only: true
+  always-breakable: [COBWEB]
+  protected-regions: ["spawn"]
+  no-build-on-barriers: true
+  protection-min-y: -64
+  cobweb-max-y: 107 # cobwebs can only be placed/broken below this y-level
+  block-mace: true # Mace can't be crafted or picked up off the ground
+  block-bows-at-spawn: true # bows/crossbows can't be fired inside the spawn-protected area
+
+block-whitelist:
+  [SAND, GRAVEL, DIRT, TNT, OAK_LOG, SPRUCE_LOG, BIRCH_LOG, STONE, COBBLESTONE,
+   SNOW_BLOCK, PACKED_ICE, WATER_BUCKET, COBWEB, STONE_PRESSURE_PLATE]
+
+mapclear:
+  interval-minutes: 8
+  ledger-save-seconds: 30
+  announce-countdown: true
+
+afk:
+  enabled: true
+  idle-seconds: 300
+  kills-pay: false                  # killing an AFK player pays nothing
+  kills-count: false                # ...and doesn't advance a streak or kill total
+  move-to-spawn-seconds: 0          # 0 disables
+  broadcast-away: "<color:#5A6B78>❄</color> <color:#B3E5FC><player></color> <color:#9FB3C0>ɪꜱ ɴᴏᴡ ᴀꜰᴋ</color>"
+  broadcast-back:  "<color:#5A6B78>❄</color> <color:#B3E5FC><player></color> <color:#9FB3C0>ɪꜱ ʙᴀᴄᴋ</color>"
+
+bounty:
+  enabled: true
+  # These were already display-unit values under the old Shards system (parsed the same
+  # way "100" meant ❄100, not 100 cents), so the numbers below carry over unchanged as
+  # plain PlayerPoints amounts — 100 = 10 kills worth, 250000 = the pool cap, plenty of
+  # headroom above any single bounty in normal play.
+  minimum-shards: "100"
+  max-pool-shards: "250000"
+  # New player-facing names; the *-shards keys above remain supported.
+  minimum-coins: "100"
+  max-pool-coins: "250000"
+  expiry-hours: 48
+  reveal-distance: 0                # 0 = never reveal coordinates
+  block-same-ip: true
+  auto-streak: 25                   # server-funded bounty at this streak
+  auto-shards: "5000"
+  auto-coins: "5000"
+  broadcast-placed: "<color:#4FC3F7><bold>ʙᴏᴜɴᴛʏ</bold></color> <dark_gray>›</dark_gray> <color:#7FE9FF><amount></color> <color:#9FB3C0>ᴏɴ</color> <color:#B3E5FC><target></color>"
+  broadcast-claimed: "<color:#4FC3F7><bold>ʙᴏᴜɴᴛʏ</bold></color> <dark_gray>›</dark_gray> <color:#B3E5FC><killer></color> <color:#9FB3C0>ᴄᴏʟʟᴇᴄᴛᴇᴅ</color> <color:#7FE9FF><amount></color> <color:#9FB3C0>ᴏɴ</color> <color:#B3E5FC><target></color>"
+
+leaderboards:
+  rows: 10
+  refresh-seconds: 15               # how often the DATA is re-sorted
+  y-offset: 2.2
+  personal-rank: true
+  view-distance: 48
+  yaw-offset: 180
+  animated: true
+  animation-ticks: 4                # ~5 fps; the animator never re-sorts data
+  cycle-seconds: 10
+  cycle-order: [kills, balance, killstreak, bounty]
+  animation-max-viewers: 20         # freeze animation on boards busier than this
+  billboard: CENTER                 # CENTER follows the viewer; FIXED preserves placement yaw
+  background-alpha: 0               # transparent by default (0-255)
+  background-color: "#000000"
+  # Use MiniMessage names (<red>, <aqua>) or hex values (#RRGGBB / <#RRGGBB>).
+  # The text templates below can also contain normal colour tags and hex tags.
+  animation-colors:
+    header: "#4FC3F7"
+    subtitle: "#2E6E8E"
+    position: "#2E6E8E"
+    name: "#B3E5FC"
+    value: "#7FE9FF"
+  # Named presets for /leaderboard color <preset>. Each sets background + all 5 animation
+  # colors at once. Add your own here — /leaderboard color <part> <hex> sets one field instead.
+  color-presets:
+    frost:
+      background: "#000000"
+      header: "#4FC3F7"
+      subtitle: "#2E6E8E"
+      position: "#2E6E8E"
+      name: "#B3E5FC"
+      value: "#7FE9FF"
+    ember:
+      background: "#000000"
+      header: "#FF6B4A"
+      subtitle: "#8E2E2E"
+      position: "#8E2E2E"
+      name: "#FFB3A0"
+      value: "#FFD166"
+    royal:
+      background: "#000000"
+      header: "#B57FFF"
+      subtitle: "#5A2E8E"
+      position: "#5A2E8E"
+      name: "#D9B3FF"
+      value: "#FFD166"
+    toxic:
+      background: "#000000"
+      header: "#7CFF4A"
+      subtitle: "#2E8E3D"
+      position: "#2E8E3D"
+      name: "#B3FFB8"
+      value: "#EAFF7F"
+    monochrome:
+      background: "#000000"
+      header: "#FFFFFF"
+      subtitle: "#AAAAAA"
+      position: "#AAAAAA"
+      name: "#DDDDDD"
+      value: "#FFFFFF"
+  text:
+    title: "<color:#4FC3F7><bold>❄ FROST TOPLIST ❄</bold></color>"
+    subtitle: "<color:#2E6E8E>(based on <type>)</color>"
+    row: "<color:#2E6E8E><position></color> <color:#B3E5FC><name></color> <color:#2E6E8E>»</color> <color:#7FE9FF><value></color>"
+    empty-row: "—"
+    footer: "<color:#2E6E8E>Your position »</color> <color:#4FC3F7><rank></color>"
+    footer-empty: "<color:#2E6E8E>Your position »</color> <color:#9FB3C0>No data</color>"
+
+killstreak:
+  save-seconds: 60
+  milestones:
+    5:  "<color:#4FC3F7><bold>ꜱᴛʀᴇᴀᴋ</bold></color> <dark_gray>›</dark_gray> <color:#B3E5FC>{player}</color> <color:#9FB3C0>ɪꜱ ᴏɴ</color> <color:#B3E5FC>5</color> <color:#9FB3C0>ᴋɪʟʟꜱ.</color>"
+    10: "<color:#4FC3F7><bold>ꜱᴛʀᴇᴀᴋ</bold></color> <dark_gray>›</dark_gray> <color:#B3E5FC>{player}</color> <color:#9FB3C0>ɪꜱ ᴏɴ</color> <color:#B3E5FC>10</color> <color:#9FB3C0>ᴋɪʟʟꜱ —</color> <color:#FFD166>ɴᴏʙᴏᴅʏ'ꜱ ᴛʜᴀᴡɪɴɢ ᴛʜᴀᴛ.</color>"
+    15: "<color:#4FC3F7><bold>ꜱᴛʀᴇᴀᴋ</bold></color> <dark_gray>›</dark_gray> <color:#B3E5FC>{player}</color> <color:#9FB3C0>ɪꜱ ᴏɴ</color> <color:#B3E5FC>15</color> <color:#9FB3C0>ᴋɪʟʟꜱ —</color> <color:#FFD166>ꜱᴏᴍᴇʙᴏᴅʏ ꜱᴛᴏᴘ ᴛʜᴇᴍ.</color>"
+    25: "<color:#4FC3F7><bold>ꜱᴛʀᴇᴀᴋ</bold></color> <dark_gray>›</dark_gray> <color:#B3E5FC>{player}</color> <color:#9FB3C0>ɪꜱ ᴏɴ</color> <color:#B3E5FC>25</color> <color:#9FB3C0>ᴋɪʟʟꜱ —</color> <color:#FF6B7A>ʙᴏᴜɴᴛʏ ᴏɴ ꜱɪɢʜᴛ.</color>"
+
+welcome:
+  # First join only. Who counts as new is tracked in members.yml, not Minecraft's
+  # own "has played before" flag — that flag is already true for everybody on an
+  # existing server, so using it would mean nobody ever saw this.
+  # Placeholders: <player> <number> <ordinal>
+  title: "<color:#4FC3F7><bold>WELCOME</bold></color>"
+  subtitle: "<color:#9FB3C0>ᴛʏᴘᴇ </color><color:#7FE9FF>/rules</color><color:#9FB3C0> ʙᴇꜰᴏʀᴇ ʏᴏᴜ ᴘʟᴀʏ</color>"
+  broadcast: "<color:#4FC3F7><bold>ᴡᴇʟᴄᴏᴍᴇ</bold></color> <dark_gray>›</dark_gray> <color:#B3E5FC><player></color><color:#9FB3C0>! you are the </color><color:#7FE9FF><ordinal></color><color:#9FB3C0> player to set foot on the ice.</color>"
+
+  # Sent to EVERY player 2 seconds after joining. Empty list disables it.
+  motd:
+    - ""
+    - "<color:#4FC3F7><bold>❄ ꜰʀᴏꜱᴛ ꜰꜰᴀ ❄</bold></color>"
+    - "<color:#9FB3C0>ᴋɪʟʟ ᴛᴏ ᴇᴀʀɴ </color><color:#7FE9FF>ᴘᴏɪɴᴛꜱ</color><color:#9FB3C0>. ᴄʜᴇᴄᴋ ʏᴏᴜʀ ʙᴀʟᴀɴᴄᴇ ᴡɪᴛʜ </color><color:#7FE9FF>/p me</color><color:#9FB3C0>.</color>"
+    - "<color:#9FB3C0>ᴄʟᴀɪᴍ ʏᴏᴜʀ </color><color:#7FE9FF>/daily</color><color:#9FB3C0> ʀᴇᴡᴀʀᴅ, ᴛʜᴇɴ ᴄʟɪᴍʙ ᴛʜᴇ </color><color:#7FE9FF>/rank</color><color:#9FB3C0>ꜱ.</color>"
+    - "<color:#5A6B78>ʜᴜɴᴛ ꜱᴏᴍᴇʙᴏᴅʏ ᴡɪᴛʜ /bounty · ꜱᴡᴀᴘ ɢᴇᴀʀ ᴡɪᴛʜ /trade</color>"
+    - ""
+
+kill-messages:
+  enabled: true
+  # One line picked at random per death.
+  # Placeholders: {killer} {victim} {weapon} {coins} (aliases {shards}, {money}) {streak} {health}
+  # Inserted as plain text, so a player named <red> can't colour chat.
+  pvp:
+    - "<color:#5A6B78>❄</color> <color:#B3E5FC>{killer}</color> <color:#9FB3C0>ꜰʀᴏᴢᴇ</color> <color:#B3E5FC>{victim}</color>"
+    - "<color:#5A6B78>❄</color> <color:#B3E5FC>{killer}</color> <color:#9FB3C0>ᴘᴜᴛ</color> <color:#B3E5FC>{victim}</color> <color:#9FB3C0>ᴏɴ ɪᴄᴇ</color> <dark_gray>(<color:#7FE9FF>{coins}</color><dark_gray>)</dark_gray>"
+    - "<color:#5A6B78>❄</color> <color:#B3E5FC>{victim}</color> <color:#9FB3C0>ᴅɪᴅɴ'ᴛ ꜱᴜʀᴠɪᴠᴇ ᴛʜᴇ ᴡɪɴᴛᴇʀ</color>"
+    - "<color:#5A6B78>❄</color> <color:#B3E5FC>{killer}</color> <color:#9FB3C0>ꜱᴇɴᴛ</color> <color:#B3E5FC>{victim}</color> <color:#9FB3C0>ʙᴀᴄᴋ ᴛᴏ ꜱᴘᴀᴡɴ</color>"
+    - "<color:#5A6B78>❄</color> <color:#B3E5FC>{victim}</color> <color:#9FB3C0>ᴄᴏᴜʟᴅɴ'ᴛ ᴋᴇᴇᴘ ᴜᴘ ᴡɪᴛʜ</color> <color:#B3E5FC>{killer}</color>"
+    - "<color:#5A6B78>❄</color> <color:#B3E5FC>{killer}</color> <color:#9FB3C0>ʟᴇꜰᴛ</color> <color:#B3E5FC>{victim}</color> <color:#9FB3C0>ᴏᴜᴛ ɪɴ ᴛʜᴇ ᴄᴏʟᴅ</color>"
+    - "<color:#5A6B78>❄</color> <color:#B3E5FC>{killer}</color> <color:#9FB3C0>ᴡᴀʟᴋᴇᴅ ᴀᴡᴀʏ ᴏɴ</color> <color:#FFD166>{health}</color> <color:#9FB3C0>ʜᴇᴀʀᴛꜱ</color>"
+
+  # Kills that ended a streak of 5+. Beats `pvp`.
+  # {streak} here is the streak the VICTIM lost.
+  streak-ended:
+    - "<color:#5A6B78>❄</color> <color:#B3E5FC>{killer}</color> <color:#9FB3C0>ᴇɴᴅᴇᴅ</color> <color:#B3E5FC>{victim}</color><color:#9FB3C0>'ꜱ</color> <color:#FFD166>{streak} ᴋɪʟʟꜱᴛʀᴇᴀᴋ</color>"
+    - "<color:#5A6B78>❄</color> <color:#B3E5FC>{victim}</color> <color:#9FB3C0>ᴛʜᴀᴡᴇᴅ ᴀᴛ</color> <color:#FFD166>{streak}</color> <color:#9FB3C0>— </color><color:#B3E5FC>{killer}</color> <color:#9FB3C0>ᴄᴏʟʟᴇᴄᴛᴇᴅ</color>"
+
+  environment:
+    void:     ["<color:#5A6B78>❄</color> <color:#B3E5FC>{victim}</color> <color:#9FB3C0>ꜰᴇʟʟ ᴛʜʀᴏᴜɢʜ ᴛʜᴇ ɪᴄᴇ</color>"]
+    fall:     ["<color:#5A6B78>❄</color> <color:#B3E5FC>{victim}</color> <color:#9FB3C0>ᴅɪꜱᴄᴏᴠᴇʀᴇᴅ ɢʀᴀᴠɪᴛʏ</color>"]
+    fire:     ["<color:#5A6B78>❄</color> <color:#B3E5FC>{victim}</color> <color:#9FB3C0>ᴍᴇʟᴛᴇᴅ</color>"]
+    lava:     ["<color:#5A6B78>❄</color> <color:#B3E5FC>{victim}</color> <color:#9FB3C0>ᴛᴏᴏᴋ ᴀ ʜᴏᴛ ʙᴀᴛʜ</color>"]
+    drowning: ["<color:#5A6B78>❄</color> <color:#B3E5FC>{victim}</color> <color:#9FB3C0>ꜰᴏʀɢᴏᴛ ᴛᴏ ʙʀᴇᴀᴛʜᴇ</color>"]
+    other:    ["<color:#5A6B78>❄</color> <color:#B3E5FC>{victim}</color> <color:#9FB3C0>ᴅɪᴇᴅ</color>"]
+
+  combat-log:
+    - "<color:#5A6B78>❄</color> <color:#B3E5FC>{victim}</color> <color:#9FB3C0>ʟᴏɢɢᴇᴅ ᴍɪᴅ-ꜰɪɢʜᴛ ᴀɴᴅ ᴅɪᴇᴅ ꜰᴏʀ ɪᴛ</color>"
+
+chat-cooldown:    { enabled: true, seconds: 1.5 }
+command-cooldown: { enabled: true, seconds: 3, per-command: false, exempt: [msg, r, reply, helpop, report] }
+mentions:         { enabled: true }
+
+chat-filter:
+  enabled: true
+  block-message: true
+  staff-alerts: true
+  log-to-file: true
+  notify-player: "<color:#FF6B7A>Your message contained prohibited language and was blocked.</color>"
+  staff-alert-format: "<color:#FFD166>[ChatFilter]</color> <color:#B3E5FC><player></color> <color:#9FB3C0>tried to say:</color> <color:#FF6B7A><message></color> <dark_gray>(Rule: <rule>)</dark_gray>"
+  blacklisted-words:
+    - "nigger"
+    - "nigga"
+    - "nga"
+    - "niga"
+    - "nigg"
+    - "niggah"
+    - "nigg3r"
+    - "n1gger"
+    - "n1gga"
+    - "n1gg3r"
+    - "n1ga"
+    - "n3gro"
+    - "negro"
+    - "faggot"
+    - "fag"
+    - "f4g"
+    - "f4gg0t"
+    - "fgt"
+    - "retard"
+    - "tard"
+    - "r3tard"
+    - "tranny"
+    - "shemale"
+    - "kike"
+    - "spic"
+    - "chink"
+    - "gook"
+    - "wetback"
+    - "beaner"
+    - "coon"
+    - "towelhead"
+    - "paki"
+    - "dyke"
+    - "fuck"
+    - "fck"
+    - "fuk"
+    - "fucking"
+    - "fucker"
+    - "motherfucker"
+    - "shit"
+    - "sht"
+    - "shitty"
+    - "shitter"
+    - "bitch"
+    - "btch"
+    - "cunt"
+    - "cnt"
+    - "dick"
+    - "dck"
+    - "cock"
+    - "pussy"
+    - "whore"
+    - "slut"
+    - "bastard"
+    - "asshole"
+    - "piss"
+    - "wanker"
+    - "twat"
+    - "prick"
+    - "douche"
+    - "thot"
+    - "cum"
+    - "jizz"
+    - "tit"
+    - "tits"
+    - "penis"
+    - "vagina"
+    - "clit"
+    - "dildo"
+    - "porn"
+    - "hentai"
+    - "kys"
+    - "kill yourself"
+    - "killyourself"
+    - "kill urself"
+    - "kms"
+    - "kill myself"
+    - "go die"
+    - "die in a fire"
+    - "get cancer"
+    - "drink bleach"
+    - "hang yourself"
+  regex-patterns:
+    - "(?i)\\bn+[1i|]*[g9]+[a41ie]+\\b"
+    - "(?i)\\bn+[1i|]*[g9]+[e3]+r+\\b"
+    - "(?i)n[\\s\\._\\-]*g[\\s\\._\\-]*a"
+    - "(?i)\\bf+[a4]+g+[o0]*t*\\b"
+    - "(?i)f[\\s\\._\\-]*a[\\s\\._\\-]*g"
+    - "(?i)\\br+[e3]+t+[a4]+r+d+\\b"
+    - "(?i)r[\\s\\._\\-]*e[\\s\\._\\-]*t[\\s\\._\\-]*a[\\s\\._\\-]*r[\\s\\._\\-]*d"
+    - "(?i)\\bf+[u*x]+c*k+\\b"
+    - "(?i)f[\\s\\._\\-]*u[\\s\\._\\-]*c[\\s\\._\\-]*k"
+    - "(?i)\\bs+[h*]+i+t+\\b"
+    - "(?i)s[\\s\\._\\-]*h[\\s\\._\\-]*i[\\s\\._\\-]*t"
+    - "(?i)\\bb+[i1*]+t+c+h+\\b"
+    - "(?i)b[\\s\\._\\-]*i[\\s\\._\\-]*t[\\s\\._\\-]*c[\\s\\._\\-]*h"
+    - "(?i)\\bc+[u*]+n+t+\\b"
+    - "(?i)c[\\s\\._\\-]*u[\\s\\._\\-]*n[\\s\\._\\-]*t"
+    - "(?i)\\bk+[y*]+s+\\b"
+    - "(?i)k[\\s\\._\\-]*y[\\s\\._\\-]*s"
+    - "(?i)discord(?:app)?\\.(?:gg|com\\/invite)\\/[a-zA-Z0-9]+"
+    - "(?i)\\b(?:[0-9]{1,3}\\.){3}[0-9]{1,3}\\b"
+  whitelisted-words:
+    - "knight"
+    - "knights"
+    - "night"
+    - "nights"
+    - "ginger"
+    - "snicker"
+    - "snickers"
+    - "class"
+    - "classes"
+    - "classic"
+    - "grass"
+    - "pass"
+    - "passes"
+    - "passing"
+    - "passive"
+    - "passenger"
+    - "glass"
+    - "bass"
+    - "embassy"
+    - "compass"
+    - "harass"
+    - "harassment"
+    - "assume"
+    - "assumption"
+    - "assessment"
+    - "asset"
+    - "assets"
+    - "assign"
+    - "assignment"
+    - "assist"
+    - "assistant"
+    - "assistance"
+    - "cocktail"
+    - "peacock"
+    - "shut"
+    - "shirt"
+    - "push"
+    - "scunthorpe"
+    - "nigeria"
+    - "nigerian"
+    - "singapore"
+    - "button"
+    - "analyze"
+    - "analysis"
+    - "assembly"
+
+messages:
+  on-cooldown:    "<color:#9FB3C0>ʀᴇᴀᴅʏ ɪɴ </color><color:#7FE9FF>{time}s</color>"
+  spawn-region:   "<color:#9FB3C0>ɴᴏᴛ ɪɴ ʜᴇʀᴇ — ʏᴏᴜ'ʀᴇ ɪɴ ꜱᴘᴀᴡɴ.</color>"
+  no-permission:  "<color:#FF6B7A>ʏᴏᴜ ᴅᴏɴ'ᴛ ʜᴀᴠᴇ ᴘᴇʀᴍɪꜱꜱɪᴏɴ.</color>"
+  in-combat:      "<color:#FF6B7A>ɴᴏᴛ ᴡʜɪʟᴇ ʏᴏᴜ'ʀᴇ ɪɴ ᴄᴏᴍʙᴀᴛ.</color>"
+
+# /ss <player> — put a player into screen-share detainment (or free them if already
+# detained; run it again to release). /ss reload reloads this section only.
+# Legacy &-color codes here (not MiniMessage) — this feature keeps its own Text
+# helper rather than the rest of the plugin's <color:...> tags.
+screenshare:
+  box:
+    # World the detainment boxes are built in. Must already be loaded. REVIEW: pick
+    # a world/coordinates for this server before going live — these are placeholders.
+    world: world
+    base-x: 10000000
+    base-y: 100
+    base-z: 10000000
+    spacing: 64
+    interior-size: 5
+    cleanup-box: true
+  custom-room:
+    # Set enabled: true to use a single hand-built room instead of the auto-generated
+    # bedrock boxes above — /ss then teleports straight to this fixed spot, skips the
+    # box-build/clear entirely, and always uses the item-click GUI (no physical buttons
+    # to place). Only one player can be detained at a time in this mode; a second /ss
+    # while the room is occupied is refused with messages.room-occupied below.
+    enabled: false
+    world: world
+    x: 0.5
+    y: 100
+    z: 0.5
+    yaw: 0
+    pitch: 0
+  title:
+    fade-in-ticks: 10
+    stay-ticks: 12000
+    fade-out-ticks: 20
+    resend-seconds: 8
+    main: "&c&lSCREEN SHARE"
+    subtitle: "&fJoin the ScreenShare VC in Discord  -  leaving = ban"
+  lockdown:
+    gamemode: SURVIVAL
+    # Allows detainees to walk around their screen-share room. Generated boxes still
+    # prevent leaving the cell; custom rooms have no automatic boundary.
+    allow-movement: true
+    # Infinite potion effects applied while detained. Format: EFFECT:amplifier
+    effects:
+      - "SLOWNESS:6"
+      - "MINING_FATIGUE:2"
+      - "JUMP_BOOST:128"
+    block-commands: true
+    command-whitelist:
+      - "msg"
+      - "r"
+      - "reply"
+      - "helpop"
+    escape-attempt-ban: true
+  on-quit:
+    ban: true
+    command: "ban %player% %reason%"
+    reason: "Logged out during a screen share"
+  rejoin:
+    enabled: true
+    world: world
+    x: 0.5
+    y: 100
+    z: 0.5
+    yaw: 0
+    pitch: 0
+    message: "&cYou were banned from a screen share. Don't cheat."
+  punishments:
+    admit:
+      command: "ban %player% %reason%"
+      reason: "Admitted to cheating during screen share"
+    refuse:
+      command: "ban %player% %reason%"
+      reason: "Refused to screen share"
+    escape:
+      command: "ban %player% %reason%"
+      reason: "Left the screen-share area - counted as refusing to screen share"
+  menu:
+    # BUTTONS = two clickable buttons (with labelled signs) in the cell wall.
+    # CHEST = a forced chest GUI that opens on the screen.
+    mode: BUTTONS
+    title: "&cScreen Share"
+    force-menu: true
+    require-confirm: true
+    admit:
+      slot: 11
+      material: RED_CONCRETE
+      name: "&c&lAdmit Defeat"
+      lore:
+        - "&7Confess to cheating."
+        - "&7You will be banned."
+    refuse:
+      slot: 15
+      material: GRAY_CONCRETE
+      name: "&8&lRefuse Screen Share"
+      lore:
+        - "&7Decline the screen share."
+        - "&7You will be banned."
+    confirm:
+      title: "&4Are you sure?"
+      confirm-slot: 11
+      cancel-slot: 15
+  messages:
+    prefix: "&8[&cSS&8] &r"
+    no-permission: "&cYou don't have permission."
+    player-not-found: "&cPlayer not found: %player%"
+    target-exempt: "&c%player% is exempt from screen share."
+    started: "&e%player% &7has been put into screen share."
+    released: "&a%player% &7has been released from screen share."
+    reloaded: "&aScreenShare config reloaded."
+    detained-blocked: "&cYou cannot do that during a screen share."
+    usage: "&7Usage: /ss <player> | /ss reload"
+    room-occupied: "&cThe screen-share room is already occupied."

@@ -1,0 +1,245 @@
+name: FrostFFACore
+version: '${version}'
+main: dev.notskrib.frostffacore.FrostFFACore
+author: notskrib
+description: Frost FFA — arena core. Physical kill-token economy, ranks, daily rewards, bounties, animated leaderboards.
+api-version: '1.21.11'
+load: POSTWORLD
+folia-supported: false
+softdepend: [WorldGuard, WorldEdit, PlaceholderAPI, LuckPerms, FancyNpcs, packetevents]
+
+commands:
+  daily:
+    description: Claim your daily reward
+    usage: /daily [admin]
+    aliases: [dailyrewards, rewards]
+  bounty:
+    description: Place or view bounties
+    usage: /bounty [player <amount>|top|check]
+    permission: frostffa.bounty.use
+    aliases: [bounties]
+  rank:
+    description: View kill-based progression ranks
+    usage: /rank [player|list]
+    aliases: [ranks]
+  afk:
+    description: Toggle or check AFK status
+    usage: /afk [player]
+    aliases: [away]
+  rules:
+    description: Read the server rules
+    usage: /rules [page]
+    aliases: [rule]
+  settings:
+    description: Toggle personal preferences
+    usage: /settings
+    aliases: [toggles]
+  shop:
+    description: Browse and buy items across multiple shops, or (with admin) manage them
+    usage: /shop [<shop>|admin [<shop>]]
+    aliases: [store]
+  trash:
+    description: Open a disposable trash can
+    usage: /trash
+    aliases: [bin]
+  leaderboard:
+    description: Place, remove or list floating leaderboards
+    usage: /leaderboard <kills|balance|killstreak|bounty|cycle|remove|list>
+    permission: frostffa.leaderboard.admin
+    aliases: [lb, frostlb]
+  frostffa:
+    description: FrostFFACore admin utilities
+    usage: /frostffa <reload|mapclear|info|clearlag <on|off|now>>
+    permission: frostffa.admin
+    aliases: [fffa]
+  enderchest:
+    description: Open your ender chest
+    usage: /enderchest
+    permission: frostffa.enderchest.use
+    aliases: [ec]
+  announce:
+    description: Broadcast a MiniMessage announcement
+    usage: /announce <message>
+    permission: frostffa.announce
+  stats:
+    description: View kills, deaths, streak, rank and balance
+    usage: /stats [player]
+    permission: frostffa.stats
+    aliases: [statistics]
+  killtoken:
+    description: Give, remove or inspect physical kill tokens
+    usage: /killtoken <give|remove|balance> <player> [amount]
+    permission: frostffa.killtoken.admin
+  link:
+    description: Link your Discord account — generate a code, or redeem one from Discord
+    usage: /link [code]
+  linkpanelpost:
+    description: Post the Discord Minecraft linking panel
+    usage: /linkpanelpost
+    permission: frostffa.discord.panel
+  kit:
+    description: Give yourself a permission-based native kit
+    usage: /kit [kit]
+  kitadmin:
+    description: Create and register native kits
+    usage: /kitadmin <create|list|help>
+    permission: frostffa.kits.admin
+  kitlayout:
+    description: Edit and save your kit inventory layout
+    usage: /kitlayout
+    aliases: [kit-layout]
+  juggernaut:
+    description: Start, stop or inspect the Juggernaut event
+    usage: /juggernaut <start|stop|status|kit [extract]>
+    permission: frostffa.juggernaut.admin
+  maintenance:
+    description: Toggle maintenance mode — kicks everyone without bypass, blocks new joins
+    usage: /maintenance [on|off]
+    permission: frostffa.maintenance.admin
+    aliases: [maint]
+  ss:
+    description: Toggle a player in or out of screen-share detainment.
+    usage: /ss <player> | /ss reload
+    permission: frostffa.screenshare.use
+  chatfilter:
+    description: Test or reload the chat filter
+    usage: /chatfilter <reload|test <text>>
+    permission: frostffa.chatfilter.admin
+    aliases: [cf, filter]
+  vanish:
+    description: Toggle vanish for yourself or another player
+    usage: /vanish [player]
+    permission: frostffa.vanish.use
+    aliases: [v]
+  spectate:
+    description: Spectate a player — teleports and keeps you near them
+    usage: /spectate <player|off>
+    permission: frostffa.spectate.use
+    aliases: [spec]
+permissions:
+  frostffa.admin:
+    description: Full admin access to FrostFFACore
+    default: op
+    children:
+      frostffa.daily.admin: true
+      frostffa.leaderboard.admin: true
+      frostffa.buildpermission: true
+      frostffa.afk.exempt: true
+      frostffa.afk.others: true
+      frostffa.bounty.bypass-ip: true
+      frostffa.enderchest.use: true
+      frostffa.juggernaut.admin: true
+      frostffa.stats: true
+      frostffa.killtoken.admin: true
+      frostffa.announce: true
+      frostffa.discord.panel: true
+      frostffa.shop.admin: true
+      frostffa.screenshare.use: true
+      frostffa.screenshare.reload: true
+      frostffa.screenshare.bypass: true
+      frostffa.maintenance.admin: true
+      frostffa.maintenance.bypass: true
+      frostffa.chatfilter.admin: true
+      frostffa.chatfilter.notify: true
+      frostffa.vanish.use: true
+      frostffa.vanish.see: true
+      frostffa.spectate.use: true
+      frostffa.kits.admin: true
+  frostffa.shop.admin:
+    description: Add, reprice or remove /shop items
+    default: op
+  frostffa.announce:
+    description: Broadcast server announcements
+    default: op
+  frostffa.discord.panel:
+    description: Post the Discord linking panel
+    default: op
+  frostffa.stats:
+    description: Use staff /stats, including Discord account lookup
+    default: op
+  frostffa.killtoken.admin:
+    description: Manage physical FrostFFACore kill tokens
+    default: op
+  frostffa.kits.admin:
+    description: Create and edit native FrostFFACore kits
+    default: op
+
+  # Generic economy admin (give/take/set/pay/balance/top) is PlayerPoints' own job —
+  # see its /p give, /p take, /p set, /p pay, /p me, /p lead. frostffa.economy.admin is
+  # intentionally not duplicated here.
+  frostffa.daily.admin:
+    description: Edit daily reward tiers
+    default: op
+  frostffa.leaderboard.admin:
+    description: Place and remove floating leaderboards
+    default: op
+  frostffa.buildpermission:
+    description: Ignore the block whitelist, barriers and protected regions; placements are never ledgered
+    default: op
+  frostffa.bounty.use:
+    description: Place and view bounties
+    default: true
+  frostffa.bounty.bypass-ip:
+    description: Skip the same-connection check on /bounty
+    default: op
+  frostffa.maintenance.admin:
+    description: Toggle maintenance mode
+    default: op
+  frostffa.maintenance.bypass:
+    description: Join the server while it's in maintenance mode
+    default: op
+  frostffa.rank.use:
+    description: Use /rank
+    default: true
+  frostffa.afk.exempt:
+    description: Never automatically marked AFK
+    default: op
+  frostffa.afk.others:
+    description: Mark another player AFK
+    default: op
+  frostffa.enderchest.use:
+    description: Open your own ender chest with /ec or /enderchest
+    default: true
+  frostffa.juggernaut.admin:
+    description: Start, stop, inspect and customize Juggernaut events
+    default: op
+  # Daily reward tiers — grant these to LuckPerms groups to unlock each tier.
+  frostffa.daily.tier1:
+    description: Unlocks daily reward tier 1
+    default: true
+  frostffa.daily.tier2:
+    description: Unlocks daily reward tier 2
+    default: false
+  frostffa.daily.tier3:
+    description: Unlocks daily reward tier 3
+    default: false
+  frostffa.screenshare.use:
+    description: Allows starting and ending screen-share sessions.
+    default: op
+  frostffa.screenshare.reload:
+    description: Allows reloading the ScreenShare config section.
+    default: op
+  frostffa.screenshare.exempt:
+    description: Players with this node cannot be put into screen share.
+    default: false
+  frostffa.screenshare.bypass:
+    description: Ignore the command block-list while detained (for staff testing).
+    default: false
+  frostffa.chatfilter.admin:
+    description: Test or reload the chat filter configuration
+    default: op
+  frostffa.chatfilter.notify:
+    description: Receive staff alert notifications when a chat message is blocked
+    default: op
+  frostffa.chatfilter.bypass:
+    description: Bypass the chat filter entirely
+    default: op
+  frostffa.vanish.use:
+    description: Toggle vanish on yourself or another player
+    default: op
+  frostffa.vanish.see:
+    description: Still see vanished players (staff only)
+    default: op
+  frostffa.spectate.use:
+    description: Use /spectate to watch another player
+    default: op

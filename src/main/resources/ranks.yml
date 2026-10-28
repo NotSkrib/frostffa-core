@@ -1,0 +1,29 @@
+# ════════════════════════════════════════════════════════════════
+#   F R O S T   F F A   —   R A N K S
+#   Kill-based progression. Rank is a pure function of total kills —
+#   there is no per-player rank state to desync, so this file is
+#   never rewritten by the plugin. Hand-edit freely and /frostffa
+#   reload (Phase 3) or a restart will pick it up.
+# ════════════════════════════════════════════════════════════════
+
+free-tiers:
+  1: { id: flurry,        name: "ꜰʟᴜʀʀʏ",        colour: "#9FB3C0", kills: 0,     icon: SNOWBALL,           reward-bonus-percent: 0,  kit: "flurry" }
+  2: { id: frostbite,     name: "ꜰʀᴏꜱᴛʙɪᴛᴇ",     colour: "#B3E5FC", kills: 50,    icon: POWDER_SNOW_BUCKET, reward-bonus-percent: 3,  kit: "frostbite" }
+  3: { id: hail,          name: "ʜᴀɪʟ",          colour: "#7FE9FF", kills: 150,   icon: SNOW_BLOCK,         reward-bonus-percent: 6,  kit: "hail" }
+  4: { id: blizzard,      name: "ʙʟɪᴢᴢᴀʀᴅ",      colour: "#4FC3F7", kills: 400,   icon: PACKED_ICE,         reward-bonus-percent: 10, kit: "blizzard" }
+  5: { id: glacier,       name: "ɢʟᴀᴄɪᴇʀ",       colour: "#3D9FE0", kills: 900,   icon: BLUE_ICE,           reward-bonus-percent: 14, kit: "glacier" }
+  6: { id: permafrost,    name: "ᴘᴇʀᴍᴀꜰʀᴏꜱᴛ",    colour: "#2E6E8E", kills: 2000,  icon: HEART_OF_THE_SEA,   reward-bonus-percent: 18, kit: "permafrost" }
+  7: { id: avalanche,     name: "ᴀᴠᴀʟᴀɴᴄʜᴇ",     colour: "#EAF6FF", kills: 4500,  icon: NETHERITE_SWORD,    reward-bonus-percent: 24, kit: "avalanche" }
+  8: { id: absolute-zero, name: "ᴀʙꜱᴏʟᴜᴛᴇ ᴢᴇʀᴏ", colour: "#FFFFFF", kills: 10000, icon: NETHER_STAR,        reward-bonus-percent: 30, kit: "absolutezero" }
+
+paid-tiers:
+  1: { id: vip,           name: "VIP",           colour: "#55FF55", permission: "frostffa.rank.vip",      icon: EMERALD,            reward-bonus-percent: 15, kit: "vip",      description: "VIP Donator Rank (+15% Coins & VIP Kit)" }
+  2: { id: vipplus,       name: "VIP+",          colour: "#55FFFF", permission: "frostffa.rank.vipplus",  icon: DIAMOND,            reward-bonus-percent: 25, kit: "vipplus",  description: "VIP+ Donator Rank (+25% Coins & VIP+ Kit)" }
+  3: { id: mvp,           name: "MVP",           colour: "#FFAA00", permission: "frostffa.rank.mvp",      icon: GOLD_BLOCK,         reward-bonus-percent: 35, kit: "mvp",      description: "MVP Donator Rank (+35% Coins & MVP Kit)" }
+  4: { id: mvpplus,       name: "MVP+",          colour: "#FF55FF", permission: "frostffa.rank.mvpplus",  icon: AMETHYST_SHARD,     reward-bonus-percent: 50, kit: "mvpplus",  description: "MVP+ Donator Rank (+50% Coins & MVP+ Kit)" }
+  5: { id: frost,         name: "FROST",         colour: "#7FE9FF", permission: "frostffa.rank.frost",    icon: NETHER_STAR,        reward-bonus-percent: 75, kit: "frost",    description: "FROST Supreme Rank (+75% Coins & FROST Kit)" }
+
+promotion:
+  broadcast: "<color:#4FC3F7><bold>ʀᴀɴᴋ ᴜᴘ</bold></color> <dark_gray>›</dark_gray> <color:#B3E5FC><player></color> <color:#9FB3C0>ɪꜱ ɴᴏᴡ</color> <rank>"
+  title:     "<color:#4FC3F7><bold>RANK UP</bold></color>"
+  subtitle:  "<rank>"

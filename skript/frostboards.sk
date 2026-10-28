@@ -1,0 +1,131 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# FrostBoards — placeholder-driven floating leaderboards
+#
+# Needs: Skript 2.10+ (text displays), PlaceholderAPI, and an addon that exposes
+# placeholders to Skript (skript-placeholders: `placeholder "x"`).
+#
+# Add a board = add one line to the BOARDS section in `on load` below.
+#   id | title | name placeholder | value placeholder | rows
+# Use {n} where the position number goes (1..rows). Any PlaceholderAPI placeholder
+# works, so you can mix other plugins' placeholders with FrostFFACore's:
+#   %frostffa_top_<kills|deaths|balance|killstreak|bounty>_<n>_name%  /  _value%
+#
+# Commands (op or frostboards.admin):
+#   /fboard place <id>   put a board where you stand
+#   /fboard remove       remove the nearest board (within 5 blocks)
+#   /fboard list         show boards and placed copies
+#   /fboard reload       re-read the board list and respawn displays
+# ─────────────────────────────────────────────────────────────────────────────
+
+options:
+	refresh: 5 seconds
+	y-offset: 2.2
+	header-color: "&d&l"
+	position-color: "&5"
+	name-color: "&f"
+	value-color: "&d"
+
+on load:
+	delete {fb::defs::*}
+	# ── BOARDS ── id | title | name placeholder | value placeholder | rows
+	set {fb::defs::kills} to "TOP KILLS|%%frostffa_top_kills_{n}_name%%|%%frostffa_top_kills_{n}_value%%|10"
+	set {fb::defs::balance} to "TOP COINS|%%frostffa_top_balance_{n}_name%%|%%frostffa_top_balance_{n}_value%%|10"
+	set {fb::defs::killstreak} to "TOP STREAK|%%frostffa_top_killstreak_{n}_name%%|%%frostffa_top_killstreak_{n}_value%%|10"
+	set {fb::defs::bounty} to "TOP BOUNTY|%%frostffa_top_bounty_{n}_name%%|%%frostffa_top_bounty_{n}_value%%|10"
+	# add your own, e.g.:
+	# set {fb::defs::deaths} to "TOP DEATHS|%%frostffa_top_deaths_{n}_name%%|%%frostffa_top_deaths_{n}_value%%|10"
+	fb_respawn_all()
+
+on unload:
+	fb_clear_displays()
+
+# Builds the board text for one definition. Placeholders are resolved per row.
+function fb_render(id: text) :: text:
+	set {_def} to {fb::defs::%{_id}%}
+	if {_def} is not set:
+		return "&cunknown board: %{_id}%"
+	set {_p::*} to {_def} split at "|"
+	set {_title} to {_p::1}
+	set {_nameTpl} to {_p::2}
+	set {_valueTpl} to {_p::3}
+	set {_rows} to {_p::4} parsed as integer
+	if {_rows} is not set:
+		set {_rows} to 10
+	set {_text} to "{@header-color}%{_title}%"
+	loop {_rows} times:
+		set {_ph} to replace all "{n}" in {_nameTpl} with "%loop-number%"
+		set {_pv} to replace all "{n}" in {_valueTpl} with "%loop-number%"
+		set {_name} to placeholder "%{_ph}%"
+		set {_value} to placeholder "%{_pv}%"
+		set {_text} to "%{_text}%<nl>{@position-color}#%loop-number% {@name-color}%{_name}% {@value-color}%{_value}%"
+	return {_text}
+
+function fb_clear_displays():
+	loop all entities:
+		if loop-entity is a text display:
+			if scoreboard tags of loop-entity contains "frostboard":
+				delete loop-entity
+
+function fb_respawn_all():
+	fb_clear_displays()
+	loop {fb::placed::*}:
+		set {_id} to {fb::placedid::%loop-index%}
+		set {_loc} to loop-value
+		if {fb::defs::%{_id}%} is set:
+			spawn text display at {_loc} ~ vector(0, {@y-offset}, 0):
+				add "frostboard" to scoreboard tags of entity
+				add "frostboard_%loop-index%" to scoreboard tags of entity
+				set display billboard of entity to center
+				set display text of entity to fb_render({_id})
+
+every {@refresh}:
+	loop all entities:
+		if loop-entity is a text display:
+			if scoreboard tags of loop-entity contains "frostboard":
+				loop scoreboard tags of loop-entity:
+					if loop-value-2 starts with "frostboard_":
+						set {_key} to loop-value-2 removed "frostboard_"
+						set {_id} to {fb::placedid::%{_key}%}
+						if {_id} is set:
+							set display text of loop-entity-1 to fb_render({_id})
+
+command /fboard [<text>] [<text>]:
+	permission: frostboards.admin
+	permission message: &cNo permission.
+	trigger:
+		if arg-1 is "place":
+			if arg-2 is not set:
+				send "&cUsage: /fboard place <id>"
+				stop
+			if {fb::defs::%arg-2%} is not set:
+				send "&cNo board '%arg-2%'. Defined: %indices of {fb::defs::*}%"
+				stop
+			add 1 to {fb::counter}
+			set {fb::placed::%{fb::counter}%} to location of player
+			set {fb::placedid::%{fb::counter}%} to arg-2
+			fb_respawn_all()
+			send "&aPlaced board &f%arg-2%&a (#%{fb::counter}%)."
+		else if arg-1 is "remove":
+			set {_best} to none
+			set {_dist} to 5
+			loop {fb::placed::*}:
+				if world of loop-value is world of player:
+					if distance between loop-value and player < {_dist}:
+						set {_dist} to distance between loop-value and player
+						set {_best} to loop-index
+			if {_best} is none:
+				send "&cNo board within 5 blocks."
+				stop
+			delete {fb::placed::%{_best}%}
+			delete {fb::placedid::%{_best}%}
+			fb_respawn_all()
+			send "&aRemoved board #%{_best}%."
+		else if arg-1 is "list":
+			send "&bDefined: &f%indices of {fb::defs::*}%"
+			loop {fb::placed::*}:
+				send "&7#%loop-index% &f%{fb::placedid::%loop-index%}% &7at %loop-value%"
+		else if arg-1 is "reload":
+			fb_respawn_all()
+			send "&aBoards reloaded."
+		else:
+			send "&cUsage: /fboard <place <id>|remove|list|reload>"

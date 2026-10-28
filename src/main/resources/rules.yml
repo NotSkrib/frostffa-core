@@ -1,0 +1,31 @@
+# ════════════════════════════════════════════════════════════════
+#   F R O S T   F F A   —   server rules
+#
+#   Shown by /rules, paginated. Add, remove or reorder freely — the
+#   numbering in chat comes from position in this list, not from
+#   anything hard-coded, so inserting a rule renumbers the rest.
+# ════════════════════════════════════════════════════════════════
+
+per-page: 10
+header: "<color:#4FC3F7><bold>ʀᴜʟᴇꜱ</bold></color> <dark_gray>›</dark_gray> <color:#9FB3C0>ᴘᴀɢᴇ {page}/{pages}</color>"
+footer: "<color:#5A6B78>/rules {next} ꜰᴏʀ ᴛʜᴇ ɴᴇxᴛ ᴘᴀɢᴇ</color>"
+footer-last: "<color:#5A6B78>ʙʀᴇᴀᴋɪɴɢ ᴀ ʀᴜʟᴇ ɢᴇᴛꜱ ʏᴏᴜ ᴘᴜɴɪꜱʜᴇᴅ. ᴀꜱᴋ ꜱᴛᴀꜰꜰ ɪꜰ ᴜɴꜱᴜʀᴇ.</color>"
+
+list:
+  - "No macroing of any kind, including autoclickers and shield-drain macros."
+  - "No duping items, coins or kits. Found a dupe? Report it — you'll be rewarded, not punished."
+  - "No bug abuse of any kind. If it looks broken, it is — report it instead of using it."
+  - "No alting to evade punishments, farm kills, or stack bounties."
+  - "No kill farming. Repeat kills on the same player pay almost nothing on purpose — don't try to route around it."
+  - "No killing AFK players for profit. AFK kills pay nothing and don't count; farming them anyway is still a punishment."
+  - "No trade scamming. Both sides confirm, both sides see the same grid — there is no excuse."
+  - "No IRL trading for coins, ranks, kits or items."
+  - "No impersonating staff, donors, or other players."
+  - "No doxxing players or staff. Instant permanent ban."
+  - "No pushing players out of spawn, or fighting from inside it."
+  - "No escaping the map boundaries or climbing the barrier walls."
+  - "No going to spawn while combat-tagged. No danger logging."
+  - "Gank limit is 2v1. Gank limit on a bountied player is 3v1."
+  - "Don't block-box or web-trap someone into an unwinnable spot and leave them there."
+  - "Hacked clients, X-ray, reach, killaura and velocity modification are all instant bans."
+  - "Staff decisions are final in the moment. Appeal in Discord, not in chat."

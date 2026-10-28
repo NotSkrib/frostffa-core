@@ -1,0 +1,44 @@
+# ════════════════════════════════════════════════════════════════
+#   D A I L Y   R E W A R D S
+#   Claimed with /daily. Tiers unlock via LuckPerms permissions.
+#   Build the item payloads in-game with /daily admin <tier id>.
+#   Money values are plain PlayerPoints integers now (no cents) — rescaled from
+#   the old Frost Shards cents values (50000/150000/400000) down to a
+#   tens-to-low-hundreds range that makes sense against the 10-points-per-kill
+#   baseline coins.sk/economy.kill-reward already pays: tier1 = 5 kills worth,
+#   tier2 = 15, tier3 = 40 — the same 1:3:8 ratio the old tiers used.
+# ════════════════════════════════════════════════════════════════
+
+menu:
+  title: "<color:#4FC3F7><bold>ᴅᴀɪʟʏ ʀᴇᴡᴀʀᴅꜱ</bold></color>"
+
+cooldown-hours: 24
+# PER_TIER    — each tier has its own 24h timer
+# HIGHEST_ONLY — one shared timer; you claim your best tier and that's your day
+claim-mode: PER_TIER
+
+streak:
+  enabled: true
+  grace-hours: 48           # claim again inside this to keep the streak alive
+  bonus-percent-per-day: 5  # applies to the COIN portion only, never to items
+  max-bonus-percent: 50
+
+tiers:
+  1:
+    display-name: "<color:#9FB3C0><bold>ᴅᴀɪʟʏ</bold></color>"
+    permission: "frostffa.daily.tier1"
+    display-material: CHEST
+    money: 50               # 5 kills worth
+    items: {}
+  2:
+    display-name: "<color:#7FE9FF><bold>ᴠɪᴘ ᴅᴀɪʟʏ</bold></color>"
+    permission: "frostffa.daily.tier2"
+    display-material: ENDER_CHEST
+    money: 150              # 15 kills worth
+    items: {}
+  3:
+    display-name: "<color:#EAF6FF><bold>ʀᴏʏᴀʟ ᴅᴀɪʟʏ</bold></color>"
+    permission: "frostffa.daily.tier3"
+    display-material: SHULKER_BOX
+    money: 400               # 40 kills worth
+    items: {}
